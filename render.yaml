@@ -3,8 +3,8 @@ services:
     name: full-stack-login
     env: node
     plan: free
-    buildCommand: cd backend && npm install && npm run build && npm install
-    startCommand: cd backend && npm start
+    buildCommand: npm install --prefix frontend && npm run build --prefix frontend && mkdir -p backend/build && cp -r frontend/build/* backend/build/
+    startCommand: npm start --prefix backend
     envVars:
       - key: NODE_ENV
         value: production
