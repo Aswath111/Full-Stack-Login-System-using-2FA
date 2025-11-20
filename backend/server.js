@@ -51,12 +51,30 @@ app.get('/health', (req, res) => {
 
 // Serve React build (production)
 const buildPath = path.join(__dirname, 'build');
-app.use(express.static(buildPath));
+const buildExists = fs.existsSync(buildPath);
 
-// SPA fallback: Serve index.html for all non-API routes
-app.use((req, res) => {
-  res.sendFile(path.join(buildPath, 'index.html'));
-});
+if (buildExists) {
+  app.use(express.static(buildPath));
+
+  // SPA fallback: Serve index.html for all non-API routes
+  app.use((req, res) => {
+    const indexPath = path.join(buildPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).json({ error: 'index.html not found' });
+    }
+  });
+} else {
+  // If no build folder, show helpful error
+  app.use((req, res) => {
+    res.status(404).json({ 
+      error: 'Frontend build not found',
+      message: 'Please run: npm run build',
+      buildPath: buildPath
+    });
+  });
+}
 
 // Error handler
 app.use((err, req, res, next) => {

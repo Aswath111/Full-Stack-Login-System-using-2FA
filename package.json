@@ -4,17 +4,7 @@
   "description": "Full-stack login system with 2FA using React and Express",
   "private": true,
   "scripts": {
-    "install": "npm install --prefix frontend && npm install --prefix backend",
-    "build": "npm run build --prefix frontend && mkdir -p backend/build && cp -r frontend/build/* backend/build/",
-    "start": "npm start --prefix backend",
-    "dev": "concurrently \"npm start --prefix backend\" \"npm start --prefix frontend\""
-  },
-  "keywords": [
-    "login",
-    "2fa",
-    "otp",
-    "authentication"
-  ],
-  "author": "",
-  "license": "ISC"
+    "build": "cd frontend && npm run build && cd ../backend",
+    "start": "node backend/server.js"
+  }
 }
