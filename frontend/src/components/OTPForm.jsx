@@ -1,80 +1,44 @@
-import React, { useState } from 'react';
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const path = require('path');
 
-export default function OTPForm({ sessionId, email, onVerify, onResend }) {
-  const [otp, setOtp] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+const authRoutes = require('./routes/authRoutes');
+// const { initializeFirebase } = require('./utils/firebaseUtils');
+// const { initializeEmailService } = require('./utils/emailUtils');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-    try {
-      await onVerify(sessionId, otp);
-    } catch (err) {
-      setError(err.message || 'OTP verification failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-  const handleResend = async () => {
-    setError('');
-    setLoading(true);
+// API Routes
+app.use('/api/auth', authRoutes);
 
-    try {
-      await onResend(sessionId, email);
-      setOtp('');
-    } catch (err) {
-      setError(err.message || 'Failed to resend OTP');
-    } finally {
-      setLoading(false);
-    }
-  };
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK' });
+});
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="max-w-md mx-auto mt-10 space-y-4 p-6 bg-white rounded-lg shadow-md"
-    >
-      <h2 className="text-2xl font-bold text-center">Verify OTP</h2>
-      <p className="text-center text-gray-600 text-sm">
-        Enter the OTP sent to <strong>{email}</strong>
-      </p>
+// Serve React frontend (must be AFTER API routes)
+const buildPath = path.join(__dirname, 'build');
+app.use(express.static(buildPath));
 
-      {error && (
-        <div className="p-3 bg-red-100 text-red-700 rounded">
-          {error}
-        </div>
-      )}
+app.get('*', (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
+});
 
-      <input
-        type="text"
-        placeholder="Enter 6-digit OTP"
-        maxLength="6"
-        className="w-full px-4 py-2 border rounded text-center text-2xl tracking-widest"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-        disabled={loading}
-      />
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ success: false, message: 'Internal server error' });
+});
 
-      <button
-        type="submit"
-        disabled={loading || otp.length !== 6}
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-      >
-        {loading ? 'Verifying...' : 'Verify OTP'}
-      </button>
-
-      <button
-        type="button"
-        onClick={handleResend}
-        disabled={loading}
-        className="w-full text-blue-600 py-2 rounded hover:text-blue-700 disabled:text-gray-400 disabled:cursor-not-allowed"
-      >
-        {loading ? 'Resending...' : 'Resend OTP'}
-      </button>
-    </form>
-  );
-}
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

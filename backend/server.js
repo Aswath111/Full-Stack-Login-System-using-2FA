@@ -51,8 +51,8 @@ app.get('/health', (req, res) => {
 
 // Serve React build (production)
 const buildPath = path.join(__dirname, 'build');
-if (fs.existsSync(buildPath)) {
-  app.use(express.static(buildPath));
+if (!fs.existsSync(buildPath)) {
+  res.status(404).json({ message: 'Build folder not found. Run: npm run build in frontend folder.' });
 }
 
 // SPA fallback: Serve index.html for all non-API routes
@@ -99,3 +99,4 @@ app.listen(PORT, () => {
 ╚════════════════════════════════════════════╝
   `);
 });
+
