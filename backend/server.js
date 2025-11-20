@@ -10,6 +10,41 @@ const { initAuditFile } = require('./utils/auditUtils');
 const { initializeFirebase } = require('./utils/firebaseUtils');
 const { initializeEmailService } = require('./utils/emailUtils');
 
+// Ensure build folder exists before starting the app
+const ensureBuildFolder = () => {
+  const buildPath = path.join(__dirname, 'build');
+  const frontendBuildPath = path.join(__dirname, '..', 'frontend', 'build');
+  
+  if (!fs.existsSync(buildPath) && fs.existsSync(frontendBuildPath)) {
+    console.log('🔄 Build folder missing. Copying from frontend...');
+    try {
+      // Recursive copy function
+      const copyDirSync = (src, dest) => {
+        fs.mkdirSync(dest, { recursive: true });
+        const files = fs.readdirSync(src);
+        files.forEach(file => {
+          const srcPath = path.join(src, file);
+          const destPath = path.join(dest, file);
+          const stat = fs.statSync(srcPath);
+          if (stat.isDirectory()) {
+            copyDirSync(srcPath, destPath);
+          } else {
+            fs.copyFileSync(srcPath, destPath);
+          }
+        });
+      };
+      
+      copyDirSync(frontendBuildPath, buildPath);
+      console.log('✅ Build folder copied successfully on startup');
+    } catch (error) {
+      console.error('❌ Failed to copy build folder:', error.message);
+    }
+  }
+};
+
+// Run before initializing Firebase
+ensureBuildFolder();
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -18,6 +53,7 @@ initializeFirebase();
 
 // Initialize Email Service
 initializeEmailService();
+
 
 // Middleware
 if (process.env.NODE_ENV === 'development') {
