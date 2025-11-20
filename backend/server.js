@@ -49,8 +49,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Production static build handling
-const buildPath = path.join(__dirname, '../frontend/build');
+// ---------------- Serve React build (production) ----------------
+const buildPath = path.join(__dirname, 'build'); // <--- points to backend/build
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
 
@@ -58,6 +58,7 @@ if (fs.existsSync(buildPath)) {
     res.sendFile(path.join(buildPath, 'index.html'));
   });
 }
+// -----------------------------------------------------------------
 
 // Error handler
 app.use((err, req, res, next) => {
