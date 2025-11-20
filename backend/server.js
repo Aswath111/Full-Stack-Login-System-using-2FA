@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
+
 const authRoutes = require('./routes/authRoutes');
 const { initAuditFile } = require('./utils/auditUtils');
 const { initializeFirebase } = require('./utils/firebaseUtils');
@@ -11,21 +13,19 @@ const { initializeEmailService } = require('./utils/emailUtils');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Initialize Firebase (optional, with fallback)
+// Initialize Firebase
 initializeFirebase();
 
 // Initialize Email Service
 initializeEmailService();
 
 // Middleware
-// CORS - only for development or if frontend is on different domain
 if (process.env.NODE_ENV === 'development') {
   app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true,
   }));
 } else {
-  // In production, frontend is served from same origin, so CORS not needed
   app.use(cors({
     origin: process.env.FRONTEND_URL || '*',
     credentials: true,
@@ -38,7 +38,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Initialize audit file
 initAuditFile();
 
-// API Routes - MUST be before static files and SPA fallback
+// API Routes
 app.use('/api/auth', authRoutes);
 
 // Health check
@@ -49,15 +49,12 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Serve static files and SPA fallback - only if build folder exists (production)
+// Production static build handling
 const buildPath = path.join(__dirname, '../frontend/build');
-const fs = require('fs');
 if (fs.existsSync(buildPath)) {
-  // Production: serve React build
   app.use(express.static(buildPath));
-  
-  // SPA fallback for production
-  app.use((req, res) => {
+
+  app.get('*', (req, res) => {
     res.sendFile(path.join(buildPath, 'index.html'));
   });
 }
@@ -95,22 +92,4 @@ app.listen(PORT, () => {
 ║  ✓ Console (fallback)                      ║
 ╚════════════════════════════════════════════╝
   `);
-});
-
-
-const path = require("path");
-
-// Serve React Build
-app.use(express.static(path.join(__dirname, "build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
-const path = require("path");
-
-// Serve React Build
-app.use(express.static(path.join(__dirname, "build")));
-
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
 });
