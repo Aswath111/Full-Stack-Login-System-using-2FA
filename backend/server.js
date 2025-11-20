@@ -53,7 +53,11 @@ app.get('/health', (req, res) => {
 const buildPath = path.join(__dirname, 'build');
 const buildExists = fs.existsSync(buildPath);
 
+console.log(`Build path: ${buildPath}`);
+console.log(`Build exists: ${buildExists}`);
+
 if (buildExists) {
+  console.log('✓ Serving React build from backend/build');
   app.use(express.static(buildPath));
 
   // SPA fallback: Serve index.html for all non-API routes
@@ -62,17 +66,23 @@ if (buildExists) {
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
+      console.error(`index.html not found at ${indexPath}`);
       res.status(404).json({ error: 'index.html not found' });
     }
   });
 } else {
-  // If no build folder, show helpful error
+  // If no build folder, create a simple fallback
+  console.warn('⚠ Frontend build not found. Serving health check only.');
   app.use((req, res) => {
-    res.status(404).json({ 
-      error: 'Frontend build not found',
-      message: 'Please run: npm run build',
-      buildPath: buildPath
-    });
+    if (req.path === '/') {
+      res.status(503).json({ 
+        error: 'Frontend build not found',
+        message: 'Build process may still be running. Try again in a moment.',
+        status: 'building'
+      });
+    } else {
+      res.status(404).json({ error: 'Not found' });
+    }
   });
 }
 
@@ -86,7 +96,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`
 ╔════════════════════════════════════════════╗
 ║  Secure Login System                       ║
@@ -109,5 +119,17 @@ app.listen(PORT, () => {
 ║  ✓ Console (fallback)                      ║
 ╚════════════════════════════════════════════╝
   `);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  console.error('Server error:', error);
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught exception:', error);
+  process.exit(1);
 });
 
