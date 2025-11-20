@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "build": "cd frontend && npm run build && cd ../backend",
+    "build-all": "cd frontend && npm install && npm run build && cd ../backend && npm install && npm run build && npm start",
     "start": "node backend/server.js"
   }
 }
