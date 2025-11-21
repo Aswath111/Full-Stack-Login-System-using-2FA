@@ -3,8 +3,11 @@ import LoginForm from './components/LoginForm';
 import OTPForm from './components/OTPForm';
 import SignupForm from './components/SignupForm';
 
+// Use backend URL from .env
+const API_BASE = process.env.REACT_APP_API_URL;
+
 function App() {
-  const [currentStep, setCurrentStep] = useState('welcome'); // 'welcome', 'signup', 'login', 'otp', 'success'
+  const [currentStep, setCurrentStep] = useState('welcome'); // welcome, signup, login, otp, success
   const [sessionData, setSessionData] = useState(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -13,7 +16,6 @@ function App() {
     if (action === 'login') {
       setCurrentStep('login');
     } else {
-      // User just signed up, redirect to login
       setCurrentStep('login');
       setSuccessMessage('Account created! Please log in to verify your email.');
       setTimeout(() => setSuccessMessage(''), 5000);
@@ -23,86 +25,67 @@ function App() {
   const handleLogin = async ({ email, password }) => {
     setError('');
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${API_BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
-
       const data = await response.json();
-      
-      if (data.success) {
-        setSessionData({
-          sessionId: data.sessionId,
-          email: data.email,
-        });
-        setCurrentStep('otp');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error.message || 'Login failed. Please try again.');
+      if (!response.ok) throw new Error(data.message || 'Login failed');
+
+      setSessionData({ sessionId: data.sessionId, email: data.email });
+      setCurrentStep('otp');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed. Please try again.');
     }
   };
 
   const handleOTPVerify = async (sessionId, otp) => {
     setError('');
     try {
-      const response = await fetch('/api/auth/verify-otp', {
+      const response = await fetch(`${API_BASE}/api/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, otp }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'OTP verification failed');
-      }
-
       const data = await response.json();
-      
-      if (data.success) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        setSuccessMessage(`Welcome, ${data.user.name}!`);
+      if (!response.ok) throw new Error(data.message || 'OTP verification failed');
+
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setSuccessMessage(`Welcome, ${data.user.name}!`);
+      setTimeout(() => {
+        setCurrentStep('success');
         setTimeout(() => {
-          setCurrentStep('success');
-          // Redirect to Cannyminds website after 3 seconds
-          setTimeout(() => {
-            window.location.href = 'https://www.cannymindstech.com/';
-          }, 3000);
-        }, 500);
-      }
-    } catch (error) {
-      console.error('OTP verification error:', error);
-      throw error;
+          window.location.href = 'https://www.cannymindstech.com/';
+        }, 3000);
+      }, 500);
+    } catch (err) {
+      console.error('OTP verification error:', err);
+      throw err;
     }
   };
 
   const handleResendOTP = async (sessionId, email) => {
     setError('');
     try {
-      const response = await fetch('/api/auth/resend-otp', {
+      const response = await fetch(`${API_BASE}/api/auth/resend-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, email }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to resend OTP');
-      }
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to resend OTP');
 
-      await response.json();
       setSuccessMessage('OTP resent successfully');
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
-      console.error('Resend OTP error:', error);
-      throw error;
+    } catch (err) {
+      console.error('Resend OTP error:', err);
+      throw err;
     }
   };
 
@@ -144,16 +127,8 @@ function App() {
 
         {currentStep === 'login' && (
           <>
-            {error && (
-              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                {error}
-              </div>
-            )}
-            {successMessage && (
-              <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-                {successMessage}
-              </div>
-            )}
+            {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+            {successMessage && <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{successMessage}</div>}
             <LoginForm onSubmit={handleLogin} />
             <button
               onClick={() => setCurrentStep('welcome')}
@@ -166,16 +141,8 @@ function App() {
 
         {currentStep === 'otp' && sessionData && (
           <>
-            {error && (
-              <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-                {error}
-              </div>
-            )}
-            {successMessage && (
-              <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-                {successMessage}
-              </div>
-            )}
+            {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">{error}</div>}
+            {successMessage && <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{successMessage}</div>}
             <OTPForm
               sessionId={sessionData.sessionId}
               email={sessionData.email}
@@ -186,31 +153,23 @@ function App() {
         )}
 
         {currentStep === 'success' && (
-          <div className="max-w-md mx-auto mt-10 space-y-4 p-6 bg-white rounded-lg shadow-md">
-            <div className="text-center">
-              <div className="text-green-600 text-5xl mb-4">✓</div>
-              <h2 className="text-2xl font-bold text-green-600 mb-2">
-                Login Successful!
-              </h2>
-              <p className="text-gray-600 mb-6">
-                {successMessage}
-              </p>
-              <p className="text-sm text-gray-500 mb-4">
-                Redirecting to Cannyminds website in 3 seconds...
-              </p>
-              <button
-                onClick={() => window.location.href = 'https://www.cannymindstech.com/'}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2"
-              >
-                Go to Cannyminds
-              </button>
-              <button
-                onClick={handleLogout}
-                className="w-full bg-gray-400 text-white py-2 rounded hover:bg-gray-500"
-              >
-                Logout
-              </button>
-            </div>
+          <div className="max-w-md mx-auto mt-10 space-y-4 p-6 bg-white rounded-lg shadow-md text-center">
+            <div className="text-green-600 text-5xl mb-4">✓</div>
+            <h2 className="text-2xl font-bold text-green-600 mb-2">Login Successful!</h2>
+            <p className="text-gray-600 mb-6">{successMessage}</p>
+            <p className="text-sm text-gray-500 mb-4">Redirecting to Cannyminds website in 3 seconds...</p>
+            <button
+              onClick={() => window.location.href = 'https://www.cannymindstech.com/'}
+              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 mb-2"
+            >
+              Go to Cannyminds
+            </button>
+            <button
+              onClick={handleLogout}
+              className="w-full bg-gray-400 text-white py-2 rounded hover:bg-gray-500"
+            >
+              Logout
+            </button>
           </div>
         )}
       </div>
