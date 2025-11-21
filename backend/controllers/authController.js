@@ -24,26 +24,30 @@ const signup = async (req, res) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
+
+    let user;
+    let otp = generateOTP();
+    let otpExpiration = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email already registered'
+      // User exists - update with new OTP
+      existingUser.otp = otp;
+      existingUser.otpExpiration = otpExpiration;
+      existingUser.name = name; // Update name if changed
+      existingUser.password = password; // Update password if changed
+      existingUser.isVerified = false; // Reset verification status
+      user = await existingUser.save();
+    } else {
+      // Create new user
+      user = await User.create({
+        name,
+        email,
+        password,
+        otp,
+        otpExpiration,
+        isVerified: false
       });
     }
-
-    // Generate OTP
-    const otp = generateOTP();
-    const otpExpiration = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password,
-      otp,
-      otpExpiration,
-      isVerified: false
-    });
 
     // Send OTP email
     const emailResult = await sendOtpEmail(email, otp, name);
