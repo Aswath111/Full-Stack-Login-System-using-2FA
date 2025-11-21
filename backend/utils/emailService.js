@@ -1,11 +1,14 @@
-const nodemailer = require('nodemailer');
 const sgMail = require('@sendgrid/mail');
+
+// Initialize SendGrid with API key
+if (process.env.EMAIL_PASS && process.env.EMAIL_PASS.startsWith('SG.')) {
+  sgMail.setApiKey(process.env.EMAIL_PASS);
+}
 
 // Send OTP email
 const sendOtpEmail = async (email, otp, name) => {
-  const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+  const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@example.com';
 
-  // Email HTML template
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -107,46 +110,22 @@ const sendOtpEmail = async (email, otp, name) => {
   `;
 
   try {
-    // Check if using SendGrid Web API
-    if (process.env.EMAIL_SERVICE === 'SendGrid' && process.env.EMAIL_PASS && process.env.EMAIL_PASS.startsWith('SG.')) {
-      // Use SendGrid Web API (more reliable)
-      sgMail.setApiKey(process.env.EMAIL_PASS);
+    const msg = {
+      to: email,
+      from: fromEmail,
+      subject: 'Your Verification Code',
+      html: htmlContent,
+    };
 
-      const msg = {
-        to: email,
-        from: fromEmail,
-        subject: 'Your Verification Code',
-        html: htmlContent,
-      };
-
-      await sgMail.send(msg);
-      return { success: true };
-
-    } else {
-      // Fallback to SMTP (Gmail, etc.)
-      const transportConfig = {
-        service: process.env.EMAIL_SERVICE || 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      };
-
-      const transporter = nodemailer.createTransport(transportConfig);
-
-      const mailOptions = {
-        from: `"${process.env.APP_NAME || 'Auth System'}" <${fromEmail}>`,
-        to: email,
-        subject: 'Your Verification Code',
-        html: htmlContent
-      };
-
-      await transporter.sendMail(mailOptions);
-      return { success: true };
-    }
+    await sgMail.send(msg);
+    console.log('✅ Email sent successfully via SendGrid');
+    return { success: true };
 
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('❌ Email sending error:', error);
+    if (error.response) {
+      console.error('SendGrid error details:', error.response.body);
+    }
     return { success: false, error: error.message };
   }
 };
