@@ -1,5 +1,40 @@
-subject: 'Your Verification Code',
-  html: `
+const nodemailer = require('nodemailer');
+
+// Create transporter configuration based on email service
+let transportConfig;
+
+if (process.env.EMAIL_SERVICE === 'SendGrid') {
+  // SendGrid SMTP configuration
+  transportConfig = {
+    host: 'smtp.sendgrid.net',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER, // Should be 'apikey'
+      pass: process.env.EMAIL_PASS  // Your SendGrid API key
+    }
+  };
+} else {
+  // Gmail or other service
+  transportConfig = {
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  };
+}
+
+const transporter = nodemailer.createTransport(transportConfig);
+
+// Send OTP email
+const sendOtpEmail = async (email, otp, name) => {
+  const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+  const mailOptions = {
+    from: `"${process.env.APP_NAME || 'Auth System'}" <${fromEmail}>`,
+    to: email,
+    subject: 'Your Verification Code',
+    html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -85,14 +120,28 @@ subject: 'Your Verification Code',
             </div>
             <p class="message">
               This code will expire in <strong>10 minutes</strong>.
+            </p>
+            <p class="warning">
+              ⚠️ If you didn't request this code, please ignore this email.
+            </p>
+          </div>
+          <div class="footer">
+            <p>This is an automated message, please do not reply.</p>
+            <p>&copy; ${new Date().getFullYear()} ${process.env.APP_NAME || 'Auth System'}. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
 
-try {
-  await transporter.sendMail(mailOptions);
-  return { success: true };
-} catch (error) {
-  console.error('Email sending error:', error);
-  return { success: false, error: error.message };
-}
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true };
+  } catch (error) {
+    console.error('Email sending error:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 module.exports = {
