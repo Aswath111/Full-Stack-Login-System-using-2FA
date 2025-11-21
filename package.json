@@ -1,11 +1,37 @@
 {
-  "name": "full-stack-login-system",
+  "name": "fullstack-auth-system",
   "version": "1.0.0",
-  "description": "Full-stack login system with 2FA using React and Express",
-  "private": true,
+  "description": "Full-stack authentication system with Node.js, Express, MongoDB, and email OTP verification",
+  "main": "backend/server.js",
   "scripts": {
-    "build": "cd frontend && npm run build && cd ../backend",
-    "build-all": "cd frontend && npm install && npm run build && cd ../backend && npm install && npm run build && npm start",
-    "start": "node backend/server.js"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "keywords": [
+    "authentication",
+    "nodejs",
+    "express",
+    "mongodb",
+    "jwt",
+    "otp",
+    "email-verification"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "nodemailer": "^6.9.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
   }
 }

@@ -1,94 +1,59 @@
-const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-// Mock user database (use MongoDB in production)
-// Password: password123 (bcrypt hash)
-const mockUsers = [
-  {
-    id: '1',
-    email: 'user@example.com',
-    password: '$2b$10$K7ZsZ5Rz8YjvQk9qL7aLe.C8B7EqM5H6N1O2P3Q4R5S6T7U8V9W0X',
-    name: 'Test User',
-    isVerified: true,
-    createdAt: new Date('2025-01-01'),
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
   },
-  {
-    id: '2',
-    email: 'admin@example.com',
-    password: '$2b$10$K7ZsZ5Rz8YjvQk9qL7aLe.C8B7EqM5H6N1O2P3Q4R5S6T7U8V9W0X',
-    name: 'Admin User',
-    isVerified: true,
-    createdAt: new Date('2025-01-01'),
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email']
   },
-];
-
-const findUserByEmail = async (email) => {
-  return mockUsers.find(user => user.email.toLowerCase() === email.toLowerCase());
-};
-
-const verifyPassword = async (plainPassword, hashedPassword) => {
-  return bcrypt.compare(plainPassword, hashedPassword);
-};
-
-const findUserById = async (id) => {
-  return mockUsers.find(user => user.id === id);
-};
-
-const createUser = async (email, password, name) => {
-  // Check if user already exists
-  const existingUser = await findUserByEmail(email);
-  if (existingUser) {
-    throw new Error('Email already registered');
+  password: {
+    type: String,
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters']
+  },
+  otp: {
+    type: String,
+    default: null
+  },
+  otpExpiration: {
+    type: Date,
+    default: null
+  },
+  isVerified: {
+    type: Boolean,
+    default: false
   }
+}, {
+  timestamps: true
+});
 
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    throw new Error('Invalid email format');
+// Hash password before saving
+userSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) {
+    return next();
   }
-
-  // Validate password strength
-  if (password.length < 6) {
-    throw new Error('Password must be at least 6 characters');
-  }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = {
-    id: Date.now().toString(),
-    email: email.toLowerCase(),
-    password: hashedPassword,
-    name,
-    isVerified: false, // Mark as unverified until OTP is verified
-    createdAt: new Date(),
-  };
   
-  mockUsers.push(newUser);
-  
-  // Return user without password
-  const { password: _, ...userWithoutPassword } = newUser;
-  return userWithoutPassword;
-};
-
-const updateUserVerification = async (email, isVerified = true) => {
-  const user = await findUserByEmail(email);
-  if (user) {
-    user.isVerified = isVerified;
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
   }
-  return user;
+});
+
+// Method to compare password
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
-const getAllUsers = async () => {
-  // Return users without passwords
-  return mockUsers.map(user => {
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  });
-};
-
-module.exports = {
-  findUserByEmail,
-  verifyPassword,
-  findUserById,
-  createUser,
-  updateUserVerification,
-  getAllUsers,
-};
+module.exports = mongoose.model('User', userSchema);

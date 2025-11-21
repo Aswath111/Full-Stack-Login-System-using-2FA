@@ -1,14 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { login } = require('../controllers/authController');
-const { verifyOtpCode, resendOtp } = require('../controllers/otpController');
-const { signup } = require('../controllers/signupController');
-const { loginLimiter, otpLimiter } = require('../middleware/auth');
+const {
+    signup,
+    login,
+    verifyOtp,
+    resendOtp
+} = require('../controllers/authController');
 
-// Public routes
-router.post('/signup', loginLimiter, signup);
-router.post('/login', loginLimiter, login);
-router.post('/verify-otp', otpLimiter, verifyOtpCode);
-router.post('/resend-otp', otpLimiter, resendOtp);
+// Routes
+router.post('/signup', signup);
+router.post('/login', login);
+router.post('/verify-otp', verifyOtp);
+router.post('/resend-otp', resendOtp);
 
 module.exports = router;

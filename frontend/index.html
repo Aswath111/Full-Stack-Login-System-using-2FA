@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Auth System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                    <span class="text-white text-xl font-bold">A</span>
+                </div>
+                <h1 class="text-xl font-bold text-gray-800">Auth System</h1>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <p class="text-sm font-medium text-gray-800" id="userName"></p>
+                    <p class="text-xs text-gray-500" id="userEmail"></p>
+                </div>
+                <button id="logoutBtn"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm hover:shadow">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-12">
+        <!-- Welcome Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-200">
+            <div class="flex items-center space-x-4 mb-6">
+                <div
+                    class="w-20 h-20 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-4xl">
+                    ✓
+                </div>
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800 mb-1">Welcome Back!</h2>
+                    <p class="text-gray-600">You're successfully logged in to your dashboard</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-100">
+                <h3 class="font-semibold text-gray-800 mb-3 flex items-center">
+                    <span class="text-2xl mr-2">🎉</span>
+                    Authentication Status
+                </h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center">
+                        <span class="text-green-600 mr-2">✓</span>
+                        <span class="text-gray-700">Email verified successfully</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-green-600 mr-2">✓</span>
+                        <span class="text-gray-700">JWT token active</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-green-600 mr-2">✓</span>
+                        <span class="text-gray-700">Session secured</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <!-- Card 1 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <span class="text-2xl">🔒</span>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Secure Authentication</h3>
+                <p class="text-gray-600 text-sm">Your account is protected with industry-standard JWT authentication and
+                    encrypted passwords.</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <span class="text-2xl">📧</span>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Email Verification</h3>
+                <p class="text-gray-600 text-sm">Two-factor authentication via email OTP ensures only you can access
+                    your account.</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <span class="text-2xl">⚡</span>
+                </div>
+                <h3 class="font-bold text-gray-800 mb-2">Fast & Reliable</h3>
+                <p class="text-gray-600 text-sm">Built with Node.js and Express for lightning-fast performance and
+                    reliability.</p>
+            </div>
+        </div>
+
+        <!-- Account Info -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="text-2xl mr-2">👤</span>
+                Account Information
+            </h3>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p class="text-sm text-gray-600 mb-1">Full Name</p>
+                    <p class="font-semibold text-gray-800" id="displayName"></p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p class="text-sm text-gray-600 mb-1">Email Address</p>
+                    <p class="font-semibold text-gray-800" id="displayEmail"></p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p class="text-sm text-gray-600 mb-1">Account Status</p>
+                    <p class="font-semibold text-green-600">✓ Verified</p>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <p class="text-sm text-gray-600 mb-1">User ID</p>
+                    <p class="font-semibold text-gray-800 text-xs" id="userId"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-6xl mx-auto px-4 py-6 text-center text-gray-600 text-sm">
+            <p>&copy; 2025 Auth System. Built with Node.js, Express, and MongoDB.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        const userStr = localStorage.getItem('user') || sessionStorage.getItem('user');
+
+        if (!token || !userStr) {
+            window.location.href = '/login';
+        } else {
+            try {
+                const user = JSON.parse(userStr);
+
+                // Populate user info
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('displayName').textContent = user.name;
+                document.getElementById('displayEmail').textContent = user.email;
+                document.getElementById('userId').textContent = user.id;
+            } catch (error) {
+                console.error('Error parsing user data:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        // Logout functionality
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            // Clear storage
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('user');
+
+            // Redirect to login
+            window.location.href = '/login';
+        });
+    </script>
+</body>
+
+</html>
