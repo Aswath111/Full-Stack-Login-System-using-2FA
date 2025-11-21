@@ -1,21 +1,5 @@
-const nodemailer = require('nodemailer');
-
-// Create transporter
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
-// Send OTP email
-const sendOtpEmail = async (email, otp, name) => {
-    const mailOptions = {
-        from: `"${process.env.APP_NAME || 'Auth System'}" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: 'Your Verification Code',
-        html: `
+subject: 'Your Verification Code',
+  html: `
       <!DOCTYPE html>
       <html>
       <head>
@@ -101,30 +85,16 @@ const sendOtpEmail = async (email, otp, name) => {
             </div>
             <p class="message">
               This code will expire in <strong>10 minutes</strong>.
-            </p>
-            <p class="warning">
-              ⚠️ If you didn't request this code, please ignore this email.
-            </p>
-          </div>
-          <div class="footer">
-            <p>This is an automated message, please do not reply.</p>
-            <p>&copy; ${new Date().getFullYear()} ${process.env.APP_NAME || 'Auth System'}. All rights reserved.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `
-    };
 
-    try {
-        await transporter.sendMail(mailOptions);
-        return { success: true };
-    } catch (error) {
-        console.error('Email sending error:', error);
-        return { success: false, error: error.message };
-    }
+try {
+  await transporter.sendMail(mailOptions);
+  return { success: true };
+} catch (error) {
+  console.error('Email sending error:', error);
+  return { success: false, error: error.message };
+}
 };
 
 module.exports = {
-    sendOtpEmail
+  sendOtpEmail
 };
